@@ -3,12 +3,16 @@
 
 #include <iostream>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
-
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+GLFWwindow* InitSystem();
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow *window);
+void Render(GLFWwindow *window);
+void InitApp();
+void Update();
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -22,14 +26,16 @@ const char *fragmentShaderSource = "#version 330 core\n"
 "{\n"
 "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 "}\n\0";
-unsigned int vbo1, vao1, vao2, vbo2;
+
 
 GLuint shaderPrograme;
-
-void CreateTriangle(GLfloat* vertices, int vertexCount);
-void DrawTriangle();
-
 void CompileShaders();
+
+GLuint vbo[2], vao[2];
+void CreateTriangle(GLfloat* vertices, int vertexCount,GLuint vao,GLuint vbo);
+void DrawTriangle(GLuint vao);
+
+
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
@@ -39,16 +45,46 @@ GLfloat vertices1[] = {
 	0.0f, 0.0f, 0.0f  // extream  left
 };
 
+
 GLfloat vertices2[] = {
 	0.0f, 0.5f, 0.0f,  
 	-0.5f, 0.0f, 0.0f, 
 	0.50f,  0.0f, 0.0f  
 };
 
+
 int main()
 {
+	GLFWwindow* window = InitSystem();
+	if (window == NULL)
+	{
+		return -1;
+	}
+
+	InitApp();
+
+	// render loop
+	while (!glfwWindowShouldClose(window))
+	{
+		// input
+		processInput(window);
+
+		//Update
+		Update();
+
+		// render
+		Render(window);		
+
+	}
+
+	glfwTerminate();
+	return 0;
+}
+
+
+GLFWwindow* InitSystem()
+{
 	// glfw: initialize and configure
-	// ------------------------------
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -57,82 +93,88 @@ int main()
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
-
-														 // glfw window creation
-														 // --------------------
+						 
+	// glfw window creation	
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+		return NULL;
 	}
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// glad: load all OpenGL function pointers
-	// ---------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
+		return NULL;
 	}
 
-	CreateTriangle(vertices1, sizeof(vertices1));
-	//CreateTriangle(vertices2, sizeof(vertices2));
+	return window;
+}
+
+
+void InitApp()
+{
+	// uncomment this call to draw in wireframe polygons.
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	//glPointSize(5);
+
+	glGenVertexArrays(2, vao);
+	glGenBuffers(2, vbo);
+
+	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
+	CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
 
 	CompileShaders();
 
-	// uncomment this call to draw in wireframe polygons.
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	// render loop
-	// -----------
-	while (!glfwWindowShouldClose(window))
-	{
-		// input
-		processInput(window);
-
-		// render
-		DrawTriangle();
-
-		glfwSwapBuffers(window);
-
-		glfwPollEvents();
-	}
-
-	glfwTerminate();
-	return 0;
+	// draw our first triangle
+	glUseProgram(shaderPrograme);
 }
 
-void DrawTriangle() {
+void Update() {
+
+}
+
+
+void Render(GLFWwindow *window)
+{
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// draw our first triangle
-	glUseProgram(shaderPrograme);
+	DrawTriangle(vao[0]);
+	DrawTriangle(vao[1]);
 
-	glBindVertexArray(vao1); // seeing as we only have a single VAO there's no need to bind it every time, 
-	glBindVertexArray(vao2); // seeing as we only have a single VAO there's no need to bind it every time, 
+	glfwSwapBuffers(window);
+}
+
+
+void DrawTriangle(GLuint vao) {
+
+
+	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
 
-	glPointSize(5);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	//glBindVertexArray(0); // no need to unbind it every time 
+	//glBindVertexArray(0); // test it
 
 	//glDeleteVertexArrays(1, &vao1);
 	//glDeleteBuffers(1, &vbo1);
 }
 
-void CreateTriangle(GLfloat* vertices, int vertexCount ) {
 
-	glGenVertexArrays(1, &vao1);
-	glBindVertexArray(vao1);
+void CreateTriangle(GLfloat* vertices, int vertexCount ,GLuint vao , GLuint vbo) {
+	std::cout << "VAO" << vao << "\t" ;
+	std::cout << "VBO" << vbo << "\t" ;
 
-	glGenBuffers(1, &vbo1);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo1);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	//glBufferData is a function specifically targeted to copy user-defined data into the currently bound buffer.
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
@@ -141,9 +183,10 @@ void CreateTriangle(GLfloat* vertices, int vertexCount ) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
 }
+
 
 void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
 {
@@ -167,6 +210,7 @@ void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
 	}
 	glAttachShader(program, shader);
 }
+
 
 void CompileShaders() {
 	shaderPrograme = glCreateProgram();
@@ -193,13 +237,17 @@ void CompileShaders() {
 	}
 }
 
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+	glfwPollEvents();
+
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
