@@ -20,20 +20,27 @@ const char *vertexShaderSource = "#version 330 core\n"
 "{\n"
 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
+const char *fragmentShaderSource1 = "#version 330 core\n"
 "out vec4 FragColor;\n"
 "void main()\n"
 "{\n"
 "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 "}\n\0";
 
+const char *fragmentShaderSource2 = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"   FragColor = vec4(1.0f, 1.0f, 0.1f, 1.0f);\n"
+"}\n\0";
 
-GLuint shaderPrograme;
-void CompileShaders();
+
+GLuint shaderPrograme[2];
+void CompileShaders(GLuint shaderPrograme, const char* frag_shadercode);
 
 GLuint vbo[2], vao[2];
 void CreateTriangle(GLfloat* vertices, int vertexCount,GLuint vao,GLuint vbo);
-void DrawTriangle(GLuint vao);
+void DrawTriangle(GLuint vao, GLuint shaderPrograme);
 
 
 //IMPORTANT Learning
@@ -130,10 +137,15 @@ void InitApp()
 	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
 	CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
 
-	CompileShaders();
+	shaderPrograme[0] = glCreateProgram();
+
+	CompileShaders(shaderPrograme[0], fragmentShaderSource1);
+
+	shaderPrograme[1] = glCreateProgram();
+
+	CompileShaders(shaderPrograme[1],fragmentShaderSource2);
 
 	// draw our first triangle
-	glUseProgram(shaderPrograme);
 }
 
 void Update() {
@@ -146,16 +158,14 @@ void Render(GLFWwindow *window)
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	DrawTriangle(vao[0]);
-	DrawTriangle(vao[1]);
+	DrawTriangle(vao[0],shaderPrograme[0]);
+	DrawTriangle(vao[1],shaderPrograme[1]);
 
 	glfwSwapBuffers(window);
 }
 
 
-void DrawTriangle(GLuint vao) {
-
-
+void DrawTriangle(GLuint vao,GLuint shaderPrograme) {
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
 
@@ -165,6 +175,7 @@ void DrawTriangle(GLuint vao) {
 
 	//glDeleteVertexArrays(1, &vao1);
 	//glDeleteBuffers(1, &vbo1);
+	glUseProgram(shaderPrograme);
 }
 
 
@@ -212,14 +223,14 @@ void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
 }
 
 
-void CompileShaders() {
-	shaderPrograme = glCreateProgram();
+void CompileShaders(GLuint shaderPrograme, const char* frag_shadercode) {
 	if (!shaderPrograme) {
 		std::cout << "ERROR::SHADER::Programe\n" << std::endl;
 		return;
 	}
 	AddShaders(shaderPrograme, GL_VERTEX_SHADER, vertexShaderSource);
-	AddShaders(shaderPrograme, GL_FRAGMENT_SHADER, fragmentShaderSource);
+	AddShaders(shaderPrograme, GL_FRAGMENT_SHADER, frag_shadercode);
+
 	GLint results = 0;
 	GLchar buffer[1024];
 	glLinkProgram(shaderPrograme);
