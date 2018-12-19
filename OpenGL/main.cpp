@@ -13,12 +13,17 @@ void processInput(GLFWwindow *window);
 void Render(GLFWwindow *window);
 void InitApp();
 void Update();
+// triangle Movement
+bool direction = false;
+float offSetX = 0.0f, UniformMoveX, offsetMax = 0.7f,incrementOffset = 0.05f;
+//
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"uniform float xMove; \n"
+"   gl_Position = vec4(aPos.x + xMove, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 const char *fragmentShaderSource1 = "#version 330 core\n"
 "out vec4 FragColor;\n"
@@ -41,6 +46,7 @@ void CompileShaders(GLuint shaderPrograme, const char* frag_shadercode);
 GLuint vbo[2], vao[2];
 void CreateTriangle(GLfloat* vertices, int vertexCount,GLuint vao,GLuint vbo);
 void DrawTriangle(GLuint vao, GLuint shaderPrograme);
+void Update(GLuint shaderPrograme);
 
 
 //IMPORTANT Learning
@@ -77,8 +83,17 @@ int main()
 		processInput(window);
 
 		//Update
-		Update();
-
+		//Update(shaderPrograme[0]);
+		UniformMoveX = glGetUniformLocation(shaderPrograme[0], "xMove");
+		if (direction) {
+			offSetX += incrementOffset;
+		}
+		else {
+			offSetX -= incrementOffset;
+		}
+		if (abs(offSetX) > offsetMax) {
+			direction = !direction;
+		}
 		// render
 		Render(window);		
 
@@ -144,12 +159,19 @@ void InitApp()
 	shaderPrograme[1] = glCreateProgram();
 
 	CompileShaders(shaderPrograme[1],fragmentShaderSource2);
-
-	// draw our first triangle
 }
 
-void Update() {
-
+void Update(GLuint shaderPrograme) {
+	UniformMoveX = glGetUniformLocation(shaderPrograme,"xMove");
+	if (direction) {
+		offSetX += incrementOffset;
+	}
+	else {
+		offSetX -= incrementOffset;
+	}
+	if (abs(offSetX) > offsetMax) {
+		direction = !direction;
+	}
 }
 
 
