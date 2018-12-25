@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\opengl\glfw\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\opengl\glfw\include;C:\opengl\glm-0.9.9.3\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\opengl\glfw\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\opengl\glfw\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\opengl\glfw\include;C:\opengl\glm-0.9.9.3\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\opengl\glfw\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
