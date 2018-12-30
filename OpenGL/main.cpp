@@ -46,18 +46,21 @@ GLuint vbo[2], vao[2];
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
+"out vec4 vertexColor;\n"
 "uniform mat4 model;\n"
 "void main()\n"
 "{\n"
 "gl_Position = model * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"vertexColor = vec4(clamp(aPos,0.0f,1.0f),1.0f);"
 "}\0";
 
 const char *fragmentShaderSource1 = "#version 330 core\n"
 "out vec4 FragColor;\n"
+"in vec4 vertexColor;\n"
 "uniform vec4 outColor;\n"
 "void main()\n"
 "{\n"
-"   FragColor = outColor;\n"
+"   FragColor = vertexColor;\n"
 "}\n\0";
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
@@ -128,6 +131,9 @@ void InitApp()
 	//testVector = model * testVector;
 	//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0));
 
+	// the order of the matrix operation is important. i.e 
+	// rotation first and then translation second is not the same as 
+	// translation first and rotation second.
 	model = rotate(model, radians(180.0f), vec3(0.0f, 0.0f, 1.0f));
 	model = scale(model, vec3(1.5, 2, 2));
 
