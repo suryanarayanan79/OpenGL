@@ -35,8 +35,8 @@ void DrawTriangle(GLuint vao, GLuint shaderPrograme);
 
 bool direction = true;
 float triOffset = 0.0f;
-float triMaxOffset = 0.7f;
-float triIncrement = 0.00000f;
+float triMaxOffset = 0.007f;
+float triIncrement = 0.0001f;
 GLuint uniformModel, uniformColor;
 mat4 model;
 GLuint shaderPrograme[1];
@@ -164,7 +164,7 @@ int main()
 		processInput(window);
 
 		//Update
-		//Update();
+		Update();
 
 		// render
 		Render(window);		
@@ -230,6 +230,8 @@ void Update() {
 	}
 	else {
 		triOffset -= triIncrement;
+		std::cout << "Opposite Direction\n" << triOffset << std::endl;
+
 	}
 
 	if (abs(triOffset) >= triMaxOffset)
@@ -244,13 +246,14 @@ void Render(GLFWwindow *window)
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	model = rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	uniformColor = glGetUniformLocation(shaderPrograme[0],"outColor");
+
 	uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
 
 	DrawTriangle(vao[0],shaderPrograme[0]);
 	//DrawTriangle(vao[1],shaderPrograme[1]);
+	model = translate(model,vec3(triOffset,0,0));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	//Keep a note of this.
 	//The second parameter of the glUniformMatrix4fv function specifies how many matrices are to be uploaded, 
