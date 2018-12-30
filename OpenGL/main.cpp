@@ -121,7 +121,15 @@ void InitApp()
 	//Note::
 	// For drawing a triangle one programe is required for both vertex and fragment shader.
 	//intialize the matrix model to identity matrix.
+	model = mat4(1.0f);
+	//Keep a note of this
+	//vec4 testVector = vec4(1.0f, 0, 0, 1);
+	// matrix 4*4 multiply with vector results in vector.
+	//testVector = model * testVector;
+	//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0));
 
+	model = rotate(model, radians(180.0f), vec3(0.0f, 0.0f, 1.0f));
+	model = scale(model, vec3(1.5, 2, 2));
 
 	//cout << "Test Vector Direction\n" << to_string(testVector) << std::endl;
 	//cout << "Test Vector Direction\n" << to_string(model) << std::endl;
@@ -148,14 +156,7 @@ int main()
 	}
 
 	InitApp();
-	model = mat4(1.0f);
-	//Keep a note of this
-	//vec4 testVector = vec4(1.0f, 0, 0, 1);
-	// matrix 4*4 multiply with vector results in vector.
-	//testVector = model * testVector;
-	//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0));
 
-	model = rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
@@ -230,8 +231,7 @@ void Update() {
 	}
 	else {
 		triOffset -= triIncrement;
-		std::cout << "Opposite Direction\n" << triOffset << std::endl;
-
+		//std::cout << "Opposite Direction\n" << triOffset << std::endl;
 	}
 
 	if (abs(triOffset) >= triMaxOffset)
