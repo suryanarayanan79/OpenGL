@@ -2,13 +2,24 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include <glm/vec4.hpp>
+
+#include<glm/vec4.hpp>
+#include<glm/glm.hpp>
 #include<glm/mat4x4.hpp>
+//This is used for ease the calculation of the view and projection matrices
 #include<glm/gtc/matrix_transform.hpp>
+//This header adds functionality for converting a matrix object into a float array for usage in OpenGL
 #include<glm/gtc/type_ptr.hpp>
+
+//Added this to use to_string for type out the values of vectors.
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+using namespace glm;
+using namespace std;
 
 GLFWwindow* InitSystem();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -27,7 +38,7 @@ float triOffset = 0.0f;
 float triMaxOffset = 0.7f;
 float triIncrement = 0.00000f;
 GLuint uniformModel, uniformColor;
-glm::mat4 model;
+mat4 model;
 GLuint shaderPrograme[1];
 
 
@@ -38,7 +49,7 @@ const char *vertexShaderSource = "#version 330 core\n"
 "uniform mat4 model;\n"
 "void main()\n"
 "{\n"
-"gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"gl_Position = model * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 
 const char *fragmentShaderSource1 = "#version 330 core\n"
@@ -109,8 +120,13 @@ void InitApp()
 	glGenBuffers(2, vbo);
 	//Note::
 	// For drawing a triangle one programe is required for both vertex and fragment shader.
+	//intialize the matrix model to identity matrix.
 
-	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
+
+	//cout << "Test Vector Direction\n" << to_string(testVector) << std::endl;
+	//cout << "Test Vector Direction\n" << to_string(model) << std::endl;
+
+	CreateTriangle(vertices2, sizeof(vertices2), vao[0], vbo[0]);
 	//CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
 
 	shaderPrograme[0] = glCreateProgram();
@@ -132,6 +148,14 @@ int main()
 	}
 
 	InitApp();
+	model = mat4(1.0f);
+	//Keep a note of this
+	//vec4 testVector = vec4(1.0f, 0, 0, 1);
+	// matrix 4*4 multiply with vector results in vector.
+	//testVector = model * testVector;
+	//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0));
+
+	model = rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
@@ -219,13 +243,15 @@ void Render(GLFWwindow *window)
 {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0));
+
+	model = rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
 	uniformColor = glGetUniformLocation(shaderPrograme[0],"outColor");
-	//uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
+	uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
 
 	DrawTriangle(vao[0],shaderPrograme[0]);
 	//DrawTriangle(vao[1],shaderPrograme[1]);
-	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform4f(uniformColor,1.0f,0,0,1.0f);
 	glfwSwapBuffers(window);
 }
