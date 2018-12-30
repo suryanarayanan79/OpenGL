@@ -252,6 +252,13 @@ void Render(GLFWwindow *window)
 	DrawTriangle(vao[0],shaderPrograme[0]);
 	//DrawTriangle(vao[1],shaderPrograme[1]);
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	//Keep a note of this.
+	//The second parameter of the glUniformMatrix4fv function specifies how many matrices are to be uploaded, 
+	//	because you can have arrays of matrices in GLSL.
+	//	The third parameter specifies whether the specified matrix should be transposed before usage.
+	//	This is related to the way matrices are stored as float arrays in memory; 
+	//you don't have to worry about it. The last parameter specifies the matrix to upload, 
+	//where the glm::value_ptr function converts the matrix class into an array of 16 (4x4) floats.
 	glUniform4f(uniformColor,1.0f,0,0,1.0f);
 	glfwSwapBuffers(window);
 }
