@@ -37,12 +37,14 @@ bool direction = true;
 float triOffset = 0.0f;
 float triMaxOffset = 0.007f;
 float triIncrement = 0.0001f;
+float currentAngle;
 GLuint uniformModel, uniformColor;
 mat4 model;
 GLuint shaderPrograme[1];
+const float toRadians = 3.14159265f / 180.0f;
 
 
-GLuint vbo[2], vao[2];
+GLuint vbo[2], vao[2],IBO;
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -66,9 +68,17 @@ const char *fragmentShaderSource1 = "#version 330 core\n"
 //Draw Order is Always Anti-Clock Wise.
 
 GLfloat vertices1[] = {
-	-1.0f,  1.0f, 0.0f,	// top left
-	-1.0f, 0.0f, 0.0f, // bottom left
-	0.0f, 0.0f, 0.0f  // extream  left
+	-1.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 1.0f,
+	1.0f, -1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f
+};
+
+unsigned int indices[] = {
+	0, 3, 1,
+	1, 3, 2,
+	2, 3, 0,
+	0, 1, 2
 };
 
 
@@ -118,9 +128,11 @@ void InitApp()
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	//glPointSize(5);
+	glEnable(GL_DEPTH_TEST);
 
 	glGenVertexArrays(2, vao);
 	glGenBuffers(2, vbo);
+	glGenBuffers(1, &IBO);
 	//Note::
 	// For drawing a triangle one programe is required for both vertex and fragment shader.
 	//intialize the matrix model to identity matrix.
@@ -134,8 +146,7 @@ void InitApp()
 	// the order of the matrix operation is important. i.e 
 	// rotation first and then translation second is not the same as 
 	// translation first and rotation second.
-	model = rotate(model, radians(180.0f), vec3(0.0f, 0.0f, 1.0f));
-	model = scale(model, vec3(1.5, 2, 2));
+	//model = scale(model, vec3(1.5, 2, 2));
 
 	//cout << "Test Vector Direction\n" << to_string(testVector) << std::endl;
 	//cout << "Test Vector Direction\n" << to_string(model) << std::endl;
@@ -182,6 +193,25 @@ int main()
 	return 0;
 }
 
+void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) {
+	std::cout << "VAO" << vao << "\t";
+	std::cout << "VBO" << vbo << "\t";
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices,GL_STATIC_DRAW);
+
+	//glBufferData is a function specifically targeted to copy user-defined data into the currently bound buffer.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
+
+	//This means we have to specify how OpenGL should interpret the vertex data before rendering.
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
+}
 
 void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
 {
@@ -244,13 +274,18 @@ void Update() {
 	{
 		direction = !direction;
 	}
+
+	currentAngle += 0.01f;
+	if (currentAngle >= 360) {
+		currentAngle -= 360;
+	}
 }
 
 
 void Render(GLFWwindow *window)
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 	uniformColor = glGetUniformLocation(shaderPrograme[0],"outColor");
@@ -259,7 +294,9 @@ void Render(GLFWwindow *window)
 
 	DrawTriangle(vao[0],shaderPrograme[0]);
 	//DrawTriangle(vao[1],shaderPrograme[1]);
-	model = translate(model,vec3(triOffset,0,0));
+	//model = translate(model,vec3(triOffset,0,0));
+	model = rotate(model, radians(currentAngle * toRadians), vec3(0.0f, 1.0f, 0.0f));
+
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	//Keep a note of this.
 	//The second parameter of the glUniformMatrix4fv function specifies how many matrices are to be uploaded, 
@@ -276,8 +313,8 @@ void Render(GLFWwindow *window)
 void DrawTriangle(GLuint vao,GLuint shaderPrograme) {
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
-
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
+	//glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	//glBindVertexArray(0); // test it
 
@@ -287,24 +324,7 @@ void DrawTriangle(GLuint vao,GLuint shaderPrograme) {
 }
 
 
-void CreateTriangle(GLfloat* vertices, int vertexCount ,GLuint vao , GLuint vbo) {
-	std::cout << "VAO" << vao << "\t" ;
-	std::cout << "VBO" << vbo << "\t" ;
 
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	//glBufferData is a function specifically targeted to copy user-defined data into the currently bound buffer.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
-
-	//This means we have to specify how OpenGL should interpret the vertex data before rendering.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
-}
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
