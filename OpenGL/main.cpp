@@ -44,42 +44,41 @@ GLuint shaderPrograme[1];
 const float toRadians = 3.14159265f / 180.0f;
 
 
-GLuint vbo[2], vao[2],IBO;
+GLuint vbo[2], vao[2];// , IBO;
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
-"out vec4 vertexColor;\n"
-"uniform mat4 model;\n"
+"layout (location = 1) in vec3 aColor;\n"
+"out vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
-"gl_Position = model * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"vertexColor = vec4(clamp(aPos,0.0f,1.0f),1.0f);"
+"gl_Position =  vec4(aPos, 1.0f);\n"
+"vertexColor = aColor;"
 "}\0";
 
-const char *fragmentShaderSource1 = "#version 330 core\n"
+const char *fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
-"in vec4 vertexColor;\n"
-"uniform vec4 outColor;\n"
+"in vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
-"   FragColor = vertexColor;\n"
+"   FragColor = vec4(vertexColor,1.0f);\n"
 "}\n\0";
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
 GLfloat vertices1[] = {
-	-1.0f, -1.0f, 0.0f,
-	0.0f, -1.0f, 1.0f,
-	1.0f, -1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f
+	// positions         // colors
+	0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+	0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
 };
 
-unsigned int indices[] = {
-	0, 3, 1,
-	1, 3, 2,
-	2, 3, 0,
-	0, 1, 2
-};
+//unsigned int indices[] = {
+//	0, 3, 1,
+//	1, 3, 2,
+//	2, 3, 0,
+//	0, 1, 2
+//};
 
 
 GLfloat vertices2[] = {
@@ -126,13 +125,15 @@ void InitApp()
 {
 	// uncomment this call to draw in wireframe polygons.
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+	int nrAttributes;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 	//glPointSize(5);
 	glEnable(GL_DEPTH_TEST);
 
 	glGenVertexArrays(2, vao);
 	glGenBuffers(2, vbo);
-	glGenBuffers(1, &IBO);
+	//glGenBuffers(1, &IBO);
 	//Note::
 	// For drawing a triangle one programe is required for both vertex and fragment shader.
 	//intialize the matrix model to identity matrix.
@@ -151,14 +152,14 @@ void InitApp()
 	//cout << "Test Vector Direction\n" << to_string(testVector) << std::endl;
 	//cout << "Test Vector Direction\n" << to_string(model) << std::endl;
 
-	CreateTriangle(vertices2, sizeof(vertices2), vao[0], vbo[0]);
+	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
 	//CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
 
 	shaderPrograme[0] = glCreateProgram();
 	AddShaders(shaderPrograme[0], GL_VERTEX_SHADER, vertexShaderSource);
 	CompileShaders(shaderPrograme[0]);
 
-	AddShaders(shaderPrograme[0], GL_FRAGMENT_SHADER, fragmentShaderSource1);
+	AddShaders(shaderPrograme[0], GL_FRAGMENT_SHADER, fragmentShaderSource);
 	CompileShaders(shaderPrograme[0]);
 
 	// draw our first triangle
@@ -182,7 +183,7 @@ int main()
 		processInput(window);
 
 		//Update
-		Update();
+		//Update();
 
 		// render
 		Render(window);		
@@ -200,15 +201,19 @@ void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) 
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices,GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices,GL_STATIC_DRAW);
 
 	//glBufferData is a function specifically targeted to copy user-defined data into the currently bound buffer.
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
 
-	//This means we have to specify how OpenGL should interpret the vertex data before rendering.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	// color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
 }
@@ -274,8 +279,8 @@ void Update() {
 	{
 		direction = !direction;
 	}
-
-	currentAngle += 0.01f;
+	//this makes the triangle rotate.
+	//currentAngle += 0.01f;
 	if (currentAngle >= 360) {
 		currentAngle -= 360;
 	}
@@ -288,16 +293,16 @@ void Render(GLFWwindow *window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	uniformColor = glGetUniformLocation(shaderPrograme[0],"outColor");
+	//uniformColor = glGetUniformLocation(shaderPrograme[0],"outColor");
 
-	uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
+	//uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
 
 	DrawTriangle(vao[0],shaderPrograme[0]);
 	//DrawTriangle(vao[1],shaderPrograme[1]);
 	//model = translate(model,vec3(triOffset,0,0));
-	model = rotate(model, radians(currentAngle * toRadians), vec3(0.0f, 1.0f, 0.0f));
+	//model = rotate(model, radians(currentAngle * toRadians), vec3(0.0f, 1.0f, 0.0f));
 
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	//Keep a note of this.
 	//The second parameter of the glUniformMatrix4fv function specifies how many matrices are to be uploaded, 
 	//	because you can have arrays of matrices in GLSL.
@@ -305,7 +310,7 @@ void Render(GLFWwindow *window)
 	//	This is related to the way matrices are stored as float arrays in memory; 
 	//you don't have to worry about it. The last parameter specifies the matrix to upload, 
 	//where the glm::value_ptr function converts the matrix class into an array of 16 (4x4) floats.
-	glUniform4f(uniformColor,1.0f,0,0,1.0f);
+	//glUniform4f(uniformColor,1.0f,0,0,1.0f);
 	glfwSwapBuffers(window);
 }
 
@@ -313,8 +318,8 @@ void Render(GLFWwindow *window)
 void DrawTriangle(GLuint vao,GLuint shaderPrograme) {
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
-	glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
+	//glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	//glBindVertexArray(0); // test it
 
