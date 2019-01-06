@@ -14,7 +14,7 @@
 //Added this to use to_string for type out the values of vectors.
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
-
+#include "Shader.h"
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -27,11 +27,11 @@ void processInput(GLFWwindow *window);
 void Render(GLFWwindow *window);
 void InitApp();
 void Update();
-void CompileShaders(GLuint shaderPrograme);
-void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode);
+//void CompileShaders(GLuint shaderPrograme);
+//void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode);
 
 void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo);
-void DrawTriangle(GLuint vao, GLuint shaderPrograme);
+void DrawTriangle(GLuint vao);
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -40,29 +40,15 @@ float triIncrement = 0.0001f;
 float currentAngle;
 GLuint uniformModel, uniformColor;
 mat4 model;
-GLuint shaderPrograme[1];
+//GLuint shaderPrograme[1];
 const float toRadians = 3.14159265f / 180.0f;
 
 
 GLuint vbo[2], vao[2];// , IBO;
 
-const char *vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec3 aColor;\n"
-"out vec3 vertexColor;\n"
-"void main()\n"
-"{\n"
-"gl_Position =  vec4(aPos, 1.0f);\n"
-"vertexColor = aColor;"
-"}\0";
 
-const char *fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"in vec3 vertexColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = vec4(vertexColor,1.0f);\n"
-"}\n\0";
+
+
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
@@ -121,6 +107,35 @@ GLFWwindow* InitSystem()
 	return window;
 }
 
+
+
+int main()
+{
+	GLFWwindow* window = InitSystem();
+	if (window == NULL)
+	{
+		return -1;
+	}
+	Shader  ourShader("VertexCode.vs", "FragCode.fs");
+
+	ourShader.use();
+	InitApp();
+
+
+	// render loop
+	while (!glfwWindowShouldClose(window))
+	{
+		// input
+		processInput(window);
+		//Update
+		//Update();
+		// render
+		Render(window);		
+	}
+	glfwTerminate();
+	return 0;
+}
+
 void InitApp()
 {
 	// uncomment this call to draw in wireframe polygons.
@@ -155,43 +170,7 @@ void InitApp()
 	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
 	//CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
 
-	shaderPrograme[0] = glCreateProgram();
-	AddShaders(shaderPrograme[0], GL_VERTEX_SHADER, vertexShaderSource);
-	CompileShaders(shaderPrograme[0]);
-
-	AddShaders(shaderPrograme[0], GL_FRAGMENT_SHADER, fragmentShaderSource);
-	CompileShaders(shaderPrograme[0]);
-
 	// draw our first triangle
-}
-
-int main()
-{
-	GLFWwindow* window = InitSystem();
-	if (window == NULL)
-	{
-		return -1;
-	}
-
-	InitApp();
-
-
-	// render loop
-	while (!glfwWindowShouldClose(window))
-	{
-		// input
-		processInput(window);
-
-		//Update
-		//Update();
-
-		// render
-		Render(window);		
-
-	}
-
-	glfwTerminate();
-	return 0;
 }
 
 void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) {
@@ -218,52 +197,52 @@ void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) 
 	//glBindVertexArray(0);
 }
 
-void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
-{
-	GLuint shader = glCreateShader(shaderType);
-	const GLchar* shadercode[1];
-	shadercode[0] = sourceCode;
-	GLint codeLength[1];
-	codeLength[0] = strlen(sourceCode);
-
-	glShaderSource(shader, 1, shadercode, codeLength);
-	glCompileShader(shader);
-	// check for shader compile errors
-	GLint success;
-	char infoLog[1024];
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		return;
-	}
-	glAttachShader(program, shader);
-}
-
-
-void CompileShaders(GLuint shaderPrograme) {
-	if (!shaderPrograme) {
-		std::cout << "ERROR::SHADER::Programe\n" << std::endl;
-		return;
-	}
-
-	GLint results = 0;
-	GLchar buffer[1024];
-	glLinkProgram(shaderPrograme);
-	glGetProgramiv(shaderPrograme, GL_LINK_STATUS, &results);
-	if (!results) {
-		glGetProgramInfoLog(shaderPrograme, 1024, NULL, buffer);
-		std::cout << "ERROR::SHADER::Programe\n" << buffer << std::endl;
-	}
-
-	glValidateProgram(shaderPrograme);
-	glGetProgramiv(shaderPrograme, GL_VALIDATE_STATUS, &results);
-	if (!results) {
-		glGetProgramInfoLog(shaderPrograme, 1024, NULL, buffer);
-		std::cout << "ERROR::SHADER::Programe\n" << buffer << std::endl;
-	}
-}
+//void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
+//{
+//	GLuint shader = glCreateShader(shaderType);
+//	const GLchar* shadercode[1];
+//	shadercode[0] = sourceCode;
+//	GLint codeLength[1];
+//	codeLength[0] = strlen(sourceCode);
+//
+//	glShaderSource(shader, 1, shadercode, codeLength);
+//	glCompileShader(shader);
+//	// check for shader compile errors
+//	GLint success;
+//	char infoLog[1024];
+//	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+//	if (!success)
+//	{
+//		glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+//		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+//		return;
+//	}
+//	glAttachShader(program, shader);
+//}
+//
+//
+//void CompileShaders(GLuint shaderPrograme) {
+//	if (!shaderPrograme) {
+//		std::cout << "ERROR::SHADER::Programe\n" << std::endl;
+//		return;
+//	}
+//
+//	GLint results = 0;
+//	GLchar buffer[1024];
+//	glLinkProgram(shaderPrograme);
+//	glGetProgramiv(shaderPrograme, GL_LINK_STATUS, &results);
+//	if (!results) {
+//		glGetProgramInfoLog(shaderPrograme, 1024, NULL, buffer);
+//		std::cout << "ERROR::SHADER::Programe\n" << buffer << std::endl;
+//	}
+//
+//	glValidateProgram(shaderPrograme);
+//	glGetProgramiv(shaderPrograme, GL_VALIDATE_STATUS, &results);
+//	if (!results) {
+//		glGetProgramInfoLog(shaderPrograme, 1024, NULL, buffer);
+//		std::cout << "ERROR::SHADER::Programe\n" << buffer << std::endl;
+//	}
+//}
 
 void Update() {
 	if (direction)
@@ -297,7 +276,7 @@ void Render(GLFWwindow *window)
 
 	//uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
 
-	DrawTriangle(vao[0],shaderPrograme[0]);
+	DrawTriangle(vao[0]);
 	//DrawTriangle(vao[1],shaderPrograme[1]);
 	//model = translate(model,vec3(triOffset,0,0));
 	//model = rotate(model, radians(currentAngle * toRadians), vec3(0.0f, 1.0f, 0.0f));
@@ -315,7 +294,7 @@ void Render(GLFWwindow *window)
 }
 
 
-void DrawTriangle(GLuint vao,GLuint shaderPrograme) {
+void DrawTriangle(GLuint vao) {
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
 	//glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
@@ -325,7 +304,7 @@ void DrawTriangle(GLuint vao,GLuint shaderPrograme) {
 
 	//glDeleteVertexArrays(1, &vao1);
 	//glDeleteBuffers(1, &vbo1);
-	glUseProgram(shaderPrograme);
+	//glUseProgram(shaderPrograme);
 }
 
 
