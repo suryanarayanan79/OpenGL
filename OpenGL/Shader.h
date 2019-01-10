@@ -2,6 +2,9 @@
 #ifndef SHADER_H
 #define SHADER_H
 #include <glad/glad.h>
+#include<glm/mat4x4.hpp>
+#include<glm/gtc/type_ptr.hpp>
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -13,6 +16,7 @@ class Shader
 {
 public: 
 	unsigned int ID;
+	unsigned int vertex, fragment;
 
 	Shader(const char* vertexPath, const char* fragPath) {
 		string vertexCode;
@@ -39,7 +43,6 @@ public:
 		const char* vFragCode = fragmentCode.c_str();
 
 		//Compile shaders
-		unsigned int vertex, fragment;
 		vertex = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex,1,&vShaderCode,NULL);
 		glCompileShader(vertex);
@@ -89,6 +92,10 @@ public:
 
 	void setBool(const string &name, bool value)const {
 		glUniform1i(glGetUniformLocation(ID,name.c_str()),(int)value);
+	}
+
+	void setMatrix4fv(const string &name,glm::mat4 value)const {
+		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()),1,GL_FALSE,glm::value_ptr(value));
 	}
 
 	void setInt(const string &name, int value)const {

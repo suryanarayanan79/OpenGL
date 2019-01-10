@@ -39,14 +39,13 @@ float triMaxOffset = 0.007f;
 float triIncrement = 0.0001f;
 float currentAngle;
 GLuint uniformModel, uniformColor;
-mat4 model;
+//mat4 model;
 //GLuint shaderPrograme[1];
 const float toRadians = 3.14159265f / 180.0f;
 
-
 GLuint vbo[2], vao[2];// , IBO;
 
-
+mat4 objectModelMatrix;
 
 
 //IMPORTANT Learning
@@ -116,11 +115,16 @@ int main()
 	{
 		return -1;
 	}
+
+
+	
+	InitApp();
 	Shader  ourShader("VertexCode.vs", "FragCode.fs");
 
 	ourShader.use();
-	InitApp();
-
+	objectModelMatrix = mat4(1.0f);
+	objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
+	ourShader.setMatrix4fv("model", objectModelMatrix);
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
@@ -152,7 +156,7 @@ void InitApp()
 	//Note::
 	// For drawing a triangle one programe is required for both vertex and fragment shader.
 	//intialize the matrix model to identity matrix.
-	model = mat4(1.0f);
+	//model = mat4(1.0f);
 	//Keep a note of this
 	//vec4 testVector = vec4(1.0f, 0, 0, 1);
 	// matrix 4*4 multiply with vector results in vector.
