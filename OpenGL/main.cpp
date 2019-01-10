@@ -125,7 +125,7 @@ int main()
 	objectModelMatrix = mat4(1.0f);
 	objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
 	ourShader.setMatrix4fv("model", objectModelMatrix);
-	ourShader.setFloat("offset",0.50f);
+	ourShader.setFloat("offset",0.20f);
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
