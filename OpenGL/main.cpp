@@ -15,6 +15,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include "Shader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -42,9 +44,9 @@ GLuint uniformModel, uniformColor;
 //mat4 model;
 //GLuint shaderPrograme[1];
 const float toRadians = 3.14159265f / 180.0f;
-
+unsigned int textureID;
 GLuint vbo[2], vao[2];// , IBO;
-
+ int width, height, nrChannel;
 mat4 objectModelMatrix;
 
 
@@ -52,10 +54,10 @@ mat4 objectModelMatrix;
 //Draw Order is Always Anti-Clock Wise.
 
 GLfloat vertices1[] = {
-	// positions         // colors
-	0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-	0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+	// positions         // colors        //UV's
+	0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f,0.0f,  // bottom right
+	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f,0.0f,  // bottom left
+	0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  ,0.5f,1.0f  // top 
 };
 
 //unsigned int indices[] = {
@@ -66,11 +68,17 @@ GLfloat vertices1[] = {
 //};
 
 
-GLfloat vertices2[] = {
-	0.0f, 0.5f, 0.0f,  
-	-0.5f, 0.0f, 0.0f, 
-	0.50f,  0.0f, 0.0f  
-};
+//GLfloat vertices2[] = {
+//	0.0f, 0.5f, 0.0f,  
+//	-0.5f, 0.0f, 0.0f, 
+//	0.50f,  0.0f, 0.0f  
+//};
+//
+//float textureUV[] = {
+//0.0f,0.0f,
+//1.0f,0.0f,
+//0.5f,1.0f
+//};
 
 GLFWwindow* InitSystem()
 {
@@ -106,7 +114,32 @@ GLFWwindow* InitSystem()
 	return window;
 }
 
+void PrePareTexture() {
+	//Texture Wrapping.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+	//Texture Filterring 
+	//Need To Understand why near for min and linear for scaling.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	//MipMaps are applied only for down scaled images. not for UpScale images.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+}
 
+void GenerateTextureObject() {
+	PrePareTexture();
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D,textureID);
+	unsigned char *data = stbi_load("wall.jpg",&width,&height, &nrChannel,0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		cout << "Failed to Load the Image" << endl;
+	}
+	stbi_image_free(data);
+}
 
 int main()
 {
@@ -116,12 +149,11 @@ int main()
 		return -1;
 	}
 
-
-	
 	InitApp();
 	Shader  ourShader("VertexCode.vs", "FragCode.fs");
 
 	ourShader.use();
+	GenerateTextureObject();
 	objectModelMatrix = mat4(1.0f);
 	objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
 	ourShader.setMatrix4fv("model", objectModelMatrix);
@@ -137,6 +169,7 @@ int main()
 		// render
 		Render(window);		
 	}
+
 	glfwTerminate();
 	return 0;
 }
@@ -197,6 +230,10 @@ void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) 
 	// color attribute
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	//Texture Attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof
+	(float)));
+	glEnableVertexAttribArray(2);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
@@ -300,6 +337,7 @@ void Render(GLFWwindow *window)
 
 
 void DrawTriangle(GLuint vao) {
+	glBindTexture(GL_TEXTURE_2D, textureID);
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
 	//glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
@@ -334,3 +372,27 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
 }
+
+//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+//
+//The first parameter specifies which vertex attribute we want to configure.Remember that we specified
+//the location of the position vertex attribute in the vertex shader with layout(location =
+//	0).This sets the location of the vertex attribute to 0 and since we want to pass data to this vertex
+//	attribute, we pass in 0.
+//	 The next argument specifies the size of the vertex attribute.The vertex attribute is a vec3 so it is
+//	composed of 3 values.
+//	 The third argument specifies the type of the data which is GL_FLOAT(a vec* in GLSL consists of
+//		floating point values).
+//	 The next argument specifies if we want the data to be normalized.If we set this to GL_TRUE all the
+//	data that has a value not between 0 (or -1 for signed data) and 1 will be mapped to those values.We
+//	leave this at GL_FALSE.
+//	 The fifth argument is known as the stride and tells us the space between consecutive vertex attribute
+//	sets.Since the next set of position data is located exactly 3 times the size of a float away we specify
+//	that value as the stride.Note that since we know that the array is tightly packed(there is no space
+//		between the next vertex attribute value) we could’ve also specified the stride as 0 to let OpenGL
+//	determine the stride(this only works when values are tightly packed).Whenever we have more vertex
+//	attributes we have to carefully define the spacing between each vertex attribute but we’ll get to see
+//	more examples of that later on.
+//	 The last parameter is of type void* and thus requires that weird cast.This is the offset of where the
+//	position data begins in the buffer.Since the position data is at the start of the data array this value is
+//	just 0. We will explore this parameter in more detail later on
