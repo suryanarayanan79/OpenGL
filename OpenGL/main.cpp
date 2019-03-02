@@ -31,6 +31,7 @@ void InitApp();
 void Update();
 //void CompileShaders(GLuint shaderPrograme);
 //void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode);
+void GenerateTextureObject();
 
 void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo);
 void DrawTriangle(GLuint vao);
@@ -53,11 +54,55 @@ mat4 objectModelMatrix;
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
+//GLfloat vertices1[] = {
+//	// positions         // colors        //UV's
+//	0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f,0.0f,  // bottom right
+//	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f,0.0f,  // bottom left
+//	0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  ,0.5f,1.0f  // top 
+//};
+
 GLfloat vertices1[] = {
-	// positions         // colors        //UV's
-	0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f,0.0f,  // bottom right
-	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f,0.0f,  // bottom left
-	0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  ,0.5f,1.0f  // top 
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
 //unsigned int indices[] = {
@@ -114,32 +159,6 @@ GLFWwindow* InitSystem()
 	return window;
 }
 
-void PrePareTexture() {
-	//Texture Wrapping.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-	//Texture Filterring 
-	//Need To Understand why near for min and linear for scaling.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	//MipMaps are applied only for down scaled images. not for UpScale images.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-}
-
-void GenerateTextureObject() {
-	PrePareTexture();
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D,textureID);
-	unsigned char *data = stbi_load("wall.jpg",&width,&height, &nrChannel,0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		cout << "Failed to Load the Image" << endl;
-	}
-	stbi_image_free(data);
-}
 
 int main()
 {
@@ -150,20 +169,25 @@ int main()
 	}
 
 	InitApp();
-	Shader  ourShader("VertexCode.vs", "FragCode.fs");
+	Shader	ourShader("VertexCode.vs", "FragCode.fs");
 
 	ourShader.use();
 	GenerateTextureObject();
-	objectModelMatrix = mat4(1.0f);
-	objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
-	ourShader.setMatrix4fv("model", objectModelMatrix);
-	ourShader.setFloat("offset",0.20f);
+	//objectModelMatrix = mat4(1.0f);
+	//objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
+	//ourShader.setMatrix4fv("model", objectModelMatrix);
+	//ourShader.setFloat("offset",0.20f);
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		processInput(window);
+		mat4 objectModelMatrix = mat4(1.0f);
+
+		//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
+		//objectModelMatrix = translate(objectModelMatrix, vec3(0.5f, -0.5f, 0.0f));
+		ourShader.setMatrix4fv("model", objectModelMatrix);
 		//Update
 		//Update();
 		// render
@@ -210,6 +234,32 @@ void InitApp()
 
 	// draw our first triangle
 }
+void PrePareTexture() {
+	//Texture Wrapping.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//Texture Filterring 
+	//Need To Understand why near for min and linear for scaling.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//MipMaps are applied only for down scaled images. not for UpScale images.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+}
+
+void GenerateTextureObject() {
+	PrePareTexture();
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	unsigned char *data = stbi_load("sha.jpg", &width, &height, &nrChannel, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		cout << "Failed to Load the Image" << endl;
+	}
+	stbi_image_free(data);
+}
 
 void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) {
 	std::cout << "VAO" << vao << "\t";
@@ -225,66 +275,19 @@ void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
 	//Texture Attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof
 	(float)));
 	glEnableVertexAttribArray(2);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
 }
-
-//void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode)
-//{
-//	GLuint shader = glCreateShader(shaderType);
-//	const GLchar* shadercode[1];
-//	shadercode[0] = sourceCode;
-//	GLint codeLength[1];
-//	codeLength[0] = strlen(sourceCode);
-//
-//	glShaderSource(shader, 1, shadercode, codeLength);
-//	glCompileShader(shader);
-//	// check for shader compile errors
-//	GLint success;
-//	char infoLog[1024];
-//	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-//	if (!success)
-//	{
-//		glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-//		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-//		return;
-//	}
-//	glAttachShader(program, shader);
-//}
-//
-//
-//void CompileShaders(GLuint shaderPrograme) {
-//	if (!shaderPrograme) {
-//		std::cout << "ERROR::SHADER::Programe\n" << std::endl;
-//		return;
-//	}
-//
-//	GLint results = 0;
-//	GLchar buffer[1024];
-//	glLinkProgram(shaderPrograme);
-//	glGetProgramiv(shaderPrograme, GL_LINK_STATUS, &results);
-//	if (!results) {
-//		glGetProgramInfoLog(shaderPrograme, 1024, NULL, buffer);
-//		std::cout << "ERROR::SHADER::Programe\n" << buffer << std::endl;
-//	}
-//
-//	glValidateProgram(shaderPrograme);
-//	glGetProgramiv(shaderPrograme, GL_VALIDATE_STATUS, &results);
-//	if (!results) {
-//		glGetProgramInfoLog(shaderPrograme, 1024, NULL, buffer);
-//		std::cout << "ERROR::SHADER::Programe\n" << buffer << std::endl;
-//	}
-//}
 
 void Update() {
 	if (direction)
@@ -305,8 +308,9 @@ void Update() {
 	if (currentAngle >= 360) {
 		currentAngle -= 360;
 	}
+	//objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
+	//ourShader.setMatrix4fv("model", objectModelMatrix);
 }
-
 
 void Render(GLFWwindow *window)
 {
@@ -319,39 +323,17 @@ void Render(GLFWwindow *window)
 	//uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
 
 	DrawTriangle(vao[0]);
-	//DrawTriangle(vao[1],shaderPrograme[1]);
-	//model = translate(model,vec3(triOffset,0,0));
-	//model = rotate(model, radians(currentAngle * toRadians), vec3(0.0f, 1.0f, 0.0f));
 
-	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	//Keep a note of this.
-	//The second parameter of the glUniformMatrix4fv function specifies how many matrices are to be uploaded, 
-	//	because you can have arrays of matrices in GLSL.
-	//	The third parameter specifies whether the specified matrix should be transposed before usage.
-	//	This is related to the way matrices are stored as float arrays in memory; 
-	//you don't have to worry about it. The last parameter specifies the matrix to upload, 
-	//where the glm::value_ptr function converts the matrix class into an array of 16 (4x4) floats.
-	//glUniform4f(uniformColor,1.0f,0,0,1.0f);
 	glfwSwapBuffers(window);
 }
-
 
 void DrawTriangle(GLuint vao) {
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
 	//glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	//glBindVertexArray(0); // test it
-
-	//glDeleteVertexArrays(1, &vao1);
-	//glDeleteBuffers(1, &vbo1);
-	//glUseProgram(shaderPrograme);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-
-
-
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -363,7 +345,6 @@ void processInput(GLFWwindow *window)
 
 }
 
-
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -373,19 +354,23 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 //
 //The first parameter specifies which vertex attribute we want to configure.Remember that we specified
 //the location of the position vertex attribute in the vertex shader with layout(location =
 //	0).This sets the location of the vertex attribute to 0 and since we want to pass data to this vertex
 //	attribute, we pass in 0.
+
 //	 The next argument specifies the size of the vertex attribute.The vertex attribute is a vec3 so it is
 //	composed of 3 values.
+
 //	 The third argument specifies the type of the data which is GL_FLOAT(a vec* in GLSL consists of
 //		floating point values).
+
 //	 The next argument specifies if we want the data to be normalized.If we set this to GL_TRUE all the
 //	data that has a value not between 0 (or -1 for signed data) and 1 will be mapped to those values.We
 //	leave this at GL_FALSE.
+
 //	 The fifth argument is known as the stride and tells us the space between consecutive vertex attribute
 //	sets.Since the next set of position data is located exactly 3 times the size of a float away we specify
 //	that value as the stride.Note that since we know that the array is tightly packed(there is no space
@@ -393,6 +378,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 //	determine the stride(this only works when values are tightly packed).Whenever we have more vertex
 //	attributes we have to carefully define the spacing between each vertex attribute but we’ll get to see
 //	more examples of that later on.
+
 //	 The last parameter is of type void* and thus requires that weird cast.This is the offset of where the
 //	position data begins in the buffer.Since the position data is at the start of the data array this value is
 //	just 0. We will explore this parameter in more detail later on
