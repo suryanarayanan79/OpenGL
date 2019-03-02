@@ -48,7 +48,7 @@ const float toRadians = 3.14159265f / 180.0f;
 unsigned int textureID;
 GLuint vbo[2], vao[2];// , IBO;
  int width, height, nrChannel;
-mat4 objectModelMatrix;
+ mat4 objectModelMatrix, viewMatrix,projectMatrix;
 
 
 //IMPORTANT Learning
@@ -169,12 +169,19 @@ int main()
 	}
 
 	InitApp();
+
 	Shader	ourShader("VertexCode.vs", "FragCode.fs");
 
 	ourShader.use();
+
+
+	//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
+	//objectModelMatrix = translate(objectModelMatrix, vec3(0.5f, -0.5f, 0.0f));
+
+
+	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
+
 	GenerateTextureObject();
-	//objectModelMatrix = mat4(1.0f);
-	//objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
 	//ourShader.setMatrix4fv("model", objectModelMatrix);
 	//ourShader.setFloat("offset",0.20f);
 
@@ -183,11 +190,16 @@ int main()
 	{
 		// input
 		processInput(window);
-		mat4 objectModelMatrix = mat4(1.0f);
 
-		//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
-		//objectModelMatrix = translate(objectModelMatrix, vec3(0.5f, -0.5f, 0.0f));
+		objectModelMatrix = mat4(1.0f);
+		objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-55.0f), vec3(0.5f, 1.0f, 0));
+		viewMatrix = mat4(1.0f);
+		viewMatrix = translate(viewMatrix, vec3(0, 0, -3));
+		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
 		ourShader.setMatrix4fv("model", objectModelMatrix);
+		ourShader.setMatrix4fv("view", viewMatrix);
+		ourShader.setMatrix4fv("projection", projectMatrix);
+
 		//Update
 		//Update();
 		// render
@@ -229,11 +241,11 @@ void InitApp()
 	//cout << "Test Vector Direction\n" << to_string(testVector) << std::endl;
 	//cout << "Test Vector Direction\n" << to_string(model) << std::endl;
 
-	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
 	//CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
 
 	// draw our first triangle
 }
+
 void PrePareTexture() {
 	//Texture Wrapping.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -332,6 +344,9 @@ void DrawTriangle(GLuint vao) {
 	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
 	//but we'll do so to keep things a bit more organized
 	//glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
+	//for (int i = 0; i < 10; i++) {
+	//	model
+	//}
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
