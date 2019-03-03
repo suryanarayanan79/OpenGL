@@ -105,6 +105,19 @@ GLfloat vertices1[] = {
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
+vec3 cubePosition[] = {
+	vec3(0.0f,0.0f,0.0f),
+	vec3(2.0f,  5.0f, -15.0f),
+	vec3(-1.5f, -2.2f, -2.5f),
+	vec3(-3.8f, -2.0f, -12.3f),
+	vec3(2.4f, -0.4f, -3.5f),
+	vec3(-1.7f,  3.0f, -7.5f),
+	vec3(1.3f, -2.0f, -2.5f),
+	vec3(1.5f,  2.0f, -2.5f),
+	vec3(1.5f,  0.2f, -1.5f),
+	vec3(-1.3f,  1.0f, -1.5f)
+};
+
 //unsigned int indices[] = {
 //	0, 3, 1,
 //	1, 3, 2,
@@ -174,36 +187,34 @@ int main()
 
 	ourShader.use();
 
-
-	//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
-	//objectModelMatrix = translate(objectModelMatrix, vec3(0.5f, -0.5f, 0.0f));
-
-
 	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
 
 	GenerateTextureObject();
-	//ourShader.setMatrix4fv("model", objectModelMatrix);
-	//ourShader.setFloat("offset",0.20f);
+
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glBindVertexArray(vao[0]);
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		processInput(window);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		objectModelMatrix = mat4(1.0f);
-		objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-55.0f), vec3(0.5f, 1.0f, 0));
+		for (int i = 0; i < 10; i++) {
+			objectModelMatrix = mat4(1.0f);
+			objectModelMatrix = translate(objectModelMatrix, cubePosition[i]);
+			objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-55.0f), vec3(0.5f, 1.0f, 0));
+			ourShader.setMatrix4fv("model", objectModelMatrix);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		viewMatrix = mat4(1.0f);
-		viewMatrix = translate(viewMatrix, vec3(0, 0, -3));
+		viewMatrix = translate(viewMatrix, vec3(0, 0, -10.0f));
 		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
-		ourShader.setMatrix4fv("model", objectModelMatrix);
 		ourShader.setMatrix4fv("view", viewMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
-
-		//Update
-		//Update();
-		// render
-		Render(window);		
+		glfwSwapBuffers(window);
 	}
 
 	glfwTerminate();
@@ -320,34 +331,6 @@ void Update() {
 	if (currentAngle >= 360) {
 		currentAngle -= 360;
 	}
-	//objectModelMatrix = rotate(objectModelMatrix, radians(180.0f), vec3(0, 0, 1.0f));
-	//ourShader.setMatrix4fv("model", objectModelMatrix);
-}
-
-void Render(GLFWwindow *window)
-{
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	//uniformColor = glGetUniformLocation(shaderPrograme[0],"outColor");
-
-	//uniformModel = glGetUniformLocation(shaderPrograme[0], "model");
-
-	DrawTriangle(vao[0]);
-
-	glfwSwapBuffers(window);
-}
-
-void DrawTriangle(GLuint vao) {
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glBindVertexArray(vao); // seeing as we only have a single VAO there's no need to bind it every time, 
-	//but we'll do so to keep things a bit more organized
-	//glDrawElements(GL_TRIANGLES,12,GL_UNSIGNED_INT,0);
-	//for (int i = 0; i < 10; i++) {
-	//	model
-	//}
-	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
