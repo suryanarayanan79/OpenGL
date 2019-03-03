@@ -205,12 +205,17 @@ int main()
 		for (int i = 0; i < 10; i++) {
 			objectModelMatrix = mat4(1.0f);
 			objectModelMatrix = translate(objectModelMatrix, cubePosition[i]);
-			objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-55.0f), vec3(0.5f, 1.0f, 0));
+			if (i % 3 == 0) {
+				objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-55.0f), vec3(0.5f, 1.0f, 0));
+			}
 			ourShader.setMatrix4fv("model", objectModelMatrix);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
+
 		}
 		viewMatrix = mat4(1.0f);
-		viewMatrix = translate(viewMatrix, vec3(0, 0, -10.0f));
+		viewMatrix = translate(viewMatrix, vec3(0, 0, -5.0f));
+		//viewMatrix = rotate(viewMatrix,  radians(-55.0f), vec3(1.0f,0, 0));
+
 		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
 		ourShader.setMatrix4fv("view", viewMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
