@@ -41,9 +41,14 @@ float triOffset = 0.0f;
 float triMaxOffset = 0.007f;
 float triIncrement = 0.0001f;
 float currentAngle;
+//Camera System
 float radius = 40;
 float camX,camZ;
-
+vec3	CamPos, CamUp, CamDirection;
+//
+//Delta Time Frame rate independent code
+float deltaTime, currentFrameTime, lastFrameTime;
+//
 GLuint uniformModel, uniformColor;
 //mat4 model;
 //GLuint shaderPrograme[1];
@@ -196,11 +201,18 @@ int main()
 
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glBindVertexArray(vao[0]);
-
+	//Setting Up Camera 
+	CamDirection = vec3(0,0,-1);
+	CamPos = vec3(0,0,3);
+	CamUp = vec3(0,1,0);
+	//
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
+		currentFrameTime = glfwGetTime();
+		deltaTime = currentFrameTime - lastFrameTime;
+		lastFrameTime = currentFrameTime;
 		processInput(window);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -214,10 +226,10 @@ int main()
 			ourShader.setMatrix4fv("model", objectModelMatrix);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		camX = sin(glfwGetTime()) * radius;
-		camZ = cos(glfwGetTime()) * radius;
+		//camX = sin(glfwGetTime()) * radius;
+		//camZ = cos(glfwGetTime()) * radius;
 		viewMatrix = mat4(1.0f);
-		viewMatrix = glm::lookAt(vec3(camX,0,camZ),vec3(0,0,0),vec3(0,1,0));
+		viewMatrix = glm::lookAt(CamPos,CamDirection,CamUp);
 		ourShader.setMatrix4fv("view", viewMatrix);
 
 		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
@@ -349,7 +361,26 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	glfwPollEvents();
+	float camSpeed = 0.05f;
+	//Move Forward
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		CamPos += camSpeed * CamDirection * deltaTime;
+	} 
+	//Move Backward
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		CamPos -= camSpeed * CamDirection * deltaTime;
+	}
+	//Move towards left
+	// to get the camera right vector use cross product btw up vector and direction vector.
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		CamPos -= camSpeed * normalize(cross(CamDirection,CamUp)) * deltaTime;
+	}
 
+	//Move towards right[right hand rule , positive x axis is thumb right]
+	// to get the camera right vector use cross product btw up vector and direction vector.
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		CamPos += camSpeed * normalize(cross(CamDirection, CamUp)) * deltaTime;
+	}
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
