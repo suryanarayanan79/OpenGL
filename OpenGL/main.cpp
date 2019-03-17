@@ -25,6 +25,8 @@ using namespace std;
 
 GLFWwindow* InitSystem();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
 void processInput(GLFWwindow *window);
 void Render(GLFWwindow *window);
 void InitApp();
@@ -43,8 +45,9 @@ float triIncrement = 0.0001f;
 float currentAngle;
 //Camera System
 float radius = 40;
-float camX,camZ;
+float camX,camZ, lastX,lastY,YAW,PITCH;
 vec3	CamPos, CamUp, CamDirection;
+bool firstMouse = true;
 //
 //Delta Time Frame rate independent code
 float deltaTime, currentFrameTime, lastFrameTime;
@@ -169,7 +172,8 @@ GLFWwindow* InitSystem()
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
 	// glad: load all OpenGL function pointers
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -381,6 +385,34 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		CamPos += camSpeed * normalize(cross(CamDirection, CamUp)) * deltaTime;
 	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+	float sensitivity = 0.05;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+	YAW += xoffset;
+	PITCH += yoffset;
+	if (PITCH > 89.0f)
+		PITCH = 89.0f;
+	if (PITCH < -89.0f)
+		PITCH = -89.0f;
+	glm::vec3 front;
+	front.x = cos(radians(YAW)) * cos(radians(PITCH));
+	front.y = sin(radians(PITCH));
+	front.z = sin(radians(YAW)) * cos(radians(PITCH));
+	CamDirection = normalize(front);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
