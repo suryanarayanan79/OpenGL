@@ -41,6 +41,9 @@ float triOffset = 0.0f;
 float triMaxOffset = 0.007f;
 float triIncrement = 0.0001f;
 float currentAngle;
+float radius = 40;
+float camX,camZ;
+
 GLuint uniformModel, uniformColor;
 //mat4 model;
 //GLuint shaderPrograme[1];
@@ -210,14 +213,15 @@ int main()
 			}
 			ourShader.setMatrix4fv("model", objectModelMatrix);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
-
 		}
+		camX = sin(glfwGetTime()) * radius;
+		camZ = cos(glfwGetTime()) * radius;
 		viewMatrix = mat4(1.0f);
-		viewMatrix = translate(viewMatrix, vec3(0, 0, -5.0f));
-		//viewMatrix = rotate(viewMatrix,  radians(-55.0f), vec3(1.0f,0, 0));
+		viewMatrix = glm::lookAt(vec3(camX,0,camZ),vec3(0,0,0),vec3(0,1,0));
+		ourShader.setMatrix4fv("view", viewMatrix);
 
 		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
-		ourShader.setMatrix4fv("view", viewMatrix);
+		//projectMatrix = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
 		ourShader.setMatrix4fv("projection", projectMatrix);
 		glfwSwapBuffers(window);
 	}
