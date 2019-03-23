@@ -45,7 +45,7 @@ float triIncrement = 0.0001f;
 float currentAngle;
 //Camera System
 float radius = 40;
-float camX,camZ, lastX,lastY,YAW,PITCH;
+float camX, camZ, lastX, lastY, YAW, PITCH;
 vec3	CamPos, CamUp, CamDirection;
 bool firstMouse = true;
 //
@@ -58,8 +58,8 @@ GLuint uniformModel, uniformColor;
 const float toRadians = 3.14159265f / 180.0f;
 unsigned int textureID;
 GLuint vbo[2], vao[2];// , IBO;
- int width, height, nrChannel;
- mat4 objectModelMatrix, viewMatrix,projectMatrix;
+int width, height, nrChannel;
+mat4 objectModelMatrix, viewMatrix, projectMatrix;
 
 
 //IMPORTANT Learning
@@ -201,14 +201,14 @@ int main()
 
 	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
 
-	GenerateTextureObject();
+	//GenerateTextureObject();
 
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	//glBindTexture(GL_TEXTURE_2D, textureID);
 	glBindVertexArray(vao[0]);
 	//Setting Up Camera 
-	CamDirection = vec3(0,0,-1);
-	CamPos = vec3(0,0,3);
-	CamUp = vec3(0,1,0);
+	CamDirection = vec3(0, 0, -1);
+	CamPos = vec3(0, 0, 3);
+	CamUp = vec3(0, 1, 0);
 	//
 	// render loop
 	while (!glfwWindowShouldClose(window))
@@ -233,7 +233,7 @@ int main()
 		//camX = sin(glfwGetTime()) * radius;
 		//camZ = cos(glfwGetTime()) * radius;
 		viewMatrix = mat4(1.0f);
-		viewMatrix = glm::lookAt(CamPos,CamDirection,CamUp);
+		viewMatrix = glm::lookAt(CamPos, CamDirection, CamUp);
 		ourShader.setMatrix4fv("view", viewMatrix);
 
 		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
@@ -325,13 +325,15 @@ void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
 	// color attribute
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 	//Texture Attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof
-	(float)));
-	glEnableVertexAttribArray(2);
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof
+	//(float)));
+	//glEnableVertexAttribArray(2);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
@@ -369,7 +371,7 @@ void processInput(GLFWwindow *window)
 	//Move Forward
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		CamPos += camSpeed * CamDirection * deltaTime;
-	} 
+	}
 	//Move Backward
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		CamPos -= camSpeed * CamDirection * deltaTime;
@@ -377,7 +379,7 @@ void processInput(GLFWwindow *window)
 	//Move towards left
 	// to get the camera right vector use cross product btw up vector and direction vector.
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		CamPos -= camSpeed * normalize(cross(CamDirection,CamUp)) * deltaTime;
+		CamPos -= camSpeed * normalize(cross(CamDirection, CamUp)) * deltaTime;
 	}
 
 	//Move towards right[right hand rule , positive x axis is thumb right]
