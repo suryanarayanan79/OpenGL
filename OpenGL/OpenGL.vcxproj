@@ -156,12 +156,15 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FragCode.fs" />
+    <None Include="FragLightSource.fs" />
     <None Include="VertexCode.vs" />
+    <None Include="VertexLightSource.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="sha.png" />

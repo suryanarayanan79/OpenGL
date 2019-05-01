@@ -17,6 +17,7 @@
 #include "Shader.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "Camera.h"
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -28,15 +29,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 void processInput(GLFWwindow *window);
-void Render(GLFWwindow *window);
 void InitApp();
 void Update();
-//void CompileShaders(GLuint shaderPrograme);
-//void AddShaders(GLuint program, GLenum shaderType, const char* sourceCode);
-void GenerateTextureObject();
 
-void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo);
-void DrawTriangle(GLuint vao);
+void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo);
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -45,33 +41,26 @@ float triIncrement = 0.0001f;
 float currentAngle;
 //Camera System
 float radius = 40;
-float camX, camZ, lastX, lastY, YAW, PITCH;
+//double camX, camZ, lastX, lastY, YAW, PITCH;
 vec3	CamPos, CamUp, CamDirection;
 bool firstMouse = true;
 //
 //Delta Time Frame rate independent code
-float deltaTime, currentFrameTime, lastFrameTime;
+float  lastFrameTime;
+double currentFrameTime ,deltaTime;
 //
-GLuint uniformModel, uniformColor;
-//mat4 model;
-//GLuint shaderPrograme[1];
 const float toRadians = 3.14159265f / 180.0f;
-unsigned int textureID;
 GLuint vbo[2], vao[2];// , IBO;
 int width, height, nrChannel;
 mat4 objectModelMatrix, viewMatrix, projectMatrix;
+//
+mat4 lightObjectMM;
 
-
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
-//GLfloat vertices1[] = {
-//	// positions         // colors        //UV's
-//	0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f,0.0f,  // bottom right
-//	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f,0.0f,  // bottom left
-//	0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  ,0.5f,1.0f  // top 
-//};
-
+// Cube Vertex Data
 GLfloat vertices1[] = {
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -116,9 +105,10 @@ GLfloat vertices1[] = {
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
+vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
-	vec3(0.0f,0.0f,0.0f),
 	vec3(2.0f,  5.0f, -15.0f),
+	vec3(0.0f,0.0f,0.0f),
 	vec3(-1.5f, -2.2f, -2.5f),
 	vec3(-3.8f, -2.0f, -12.3f),
 	vec3(2.4f, -0.4f, -3.5f),
@@ -129,25 +119,6 @@ vec3 cubePosition[] = {
 	vec3(-1.3f,  1.0f, -1.5f)
 };
 
-//unsigned int indices[] = {
-//	0, 3, 1,
-//	1, 3, 2,
-//	2, 3, 0,
-//	0, 1, 2
-//};
-
-
-//GLfloat vertices2[] = {
-//	0.0f, 0.5f, 0.0f,  
-//	-0.5f, 0.0f, 0.0f, 
-//	0.50f,  0.0f, 0.0f  
-//};
-//
-//float textureUV[] = {
-//0.0f,0.0f,
-//1.0f,0.0f,
-//0.5f,1.0f
-//};
 
 GLFWwindow* InitSystem()
 {
@@ -195,21 +166,18 @@ int main()
 
 	InitApp();
 
-	Shader	ourShader("VertexCode.vs", "FragCode.fs");
+	SettingUpBufferData(vertices1, sizeof(vertices1), vao[0], vbo[0]);
+	SettingUpBufferData(vertices1, sizeof(vertices1), vao[1], vbo[1]);
 
-	ourShader.use();
-
-	CreateTriangle(vertices1, sizeof(vertices1), vao[0], vbo[0]);
-
-	//GenerateTextureObject();
-
-	//glBindTexture(GL_TEXTURE_2D, textureID);
-	glBindVertexArray(vao[0]);
 	//Setting Up Camera 
 	CamDirection = vec3(0, 0, -1);
-	CamPos = vec3(0, 0, 3);
+	CamPos = vec3(0, 0, 12);
 	CamUp = vec3(0, 1, 0);
 	//
+	Shader	ourShader("VertexCode.vs", "FragCode.fs");
+
+	Shader	lampShader("VertexLightSource.vs", "FragLightSource.fs");
+
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -217,28 +185,43 @@ int main()
 		currentFrameTime = glfwGetTime();
 		deltaTime = currentFrameTime - lastFrameTime;
 		lastFrameTime = currentFrameTime;
+
 		processInput(window);
+
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		for (int i = 0; i < 10; i++) {
-			objectModelMatrix = mat4(1.0f);
-			objectModelMatrix = translate(objectModelMatrix, cubePosition[i]);
-			if (i % 3 == 0) {
-				objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-55.0f), vec3(0.5f, 1.0f, 0));
-			}
-			ourShader.setMatrix4fv("model", objectModelMatrix);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-		//camX = sin(glfwGetTime()) * radius;
-		//camZ = cos(glfwGetTime()) * radius;
 		viewMatrix = mat4(1.0f);
-		viewMatrix = glm::lookAt(CamPos, CamDirection, CamUp);
-		ourShader.setMatrix4fv("view", viewMatrix);
+		viewMatrix = camera.GetViewMatrix();
 
+		projectMatrix = mat4(1.0f);
 		projectMatrix = glm::perspective(glm::radians(45.0f), ((float)SCR_WIDTH / (float)SCR_HEIGHT), 0.1f, 1000.0f);
-		//projectMatrix = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
+
+
+		lightObjectMM = mat4(1.0f);
+		lightObjectMM = translate(lightObjectMM, lightSourcePostion);
+		lightObjectMM = scale(lightObjectMM,vec3(0.3f));
+		lampShader.use();
+
+		lampShader.setMatrix4fv("model",lightObjectMM);
+		lampShader.setMatrix4fv("view", viewMatrix);
+		lampShader.setMatrix4fv("projection", projectMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+		objectModelMatrix = mat4(1.0f);
+		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
+
+		ourShader.use();
+		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.0f, 0.05f));
+		ourShader.setVec3("lightColor", glm::vec3(1.0f, 0.0f, 0.0f));
+		ourShader.setMatrix4fv("model", objectModelMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
+		ourShader.setMatrix4fv("view", viewMatrix);
+		//To render a single cube we need a total of 36 vertices
+		//6 faces * 2 triangles * 3 vertices each
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		
 		glfwSwapBuffers(window);
 	}
 
@@ -258,66 +241,17 @@ void InitApp()
 
 	glGenVertexArrays(2, vao);
 	glGenBuffers(2, vbo);
-	//glGenBuffers(1, &IBO);
-	//Note::
-	// For drawing a triangle one programe is required for both vertex and fragment shader.
-	//intialize the matrix model to identity matrix.
-	//model = mat4(1.0f);
-	//Keep a note of this
-	//vec4 testVector = vec4(1.0f, 0, 0, 1);
-	// matrix 4*4 multiply with vector results in vector.
-	//testVector = model * testVector;
-	//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0));
 
-	// the order of the matrix operation is important. i.e 
-	// rotation first and then translation second is not the same as 
-	// translation first and rotation second.
-	//model = scale(model, vec3(1.5, 2, 2));
-
-	//cout << "Test Vector Direction\n" << to_string(testVector) << std::endl;
-	//cout << "Test Vector Direction\n" << to_string(model) << std::endl;
-
-	//CreateTriangle(vertices2, sizeof(vertices2), vao[1], vbo[1]);
-
-	// draw our first triangle
 }
 
-void PrePareTexture() {
-	//Texture Wrapping.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//Texture Filterring 
-	//Need To Understand why near for min and linear for scaling.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//MipMaps are applied only for down scaled images. not for UpScale images.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-}
 
-void GenerateTextureObject() {
-	PrePareTexture();
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	unsigned char *data = stbi_load("sha.jpg", &width, &height, &nrChannel, 0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		cout << "Failed to Load the Image" << endl;
-	}
-	stbi_image_free(data);
-}
-
-void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) {
+void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) {
 	std::cout << "VAO" << vao << "\t";
 	std::cout << "VBO" << vbo << "\t";
 
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices,GL_STATIC_DRAW);
 
 	//glBufferData is a function specifically targeted to copy user-defined data into the currently bound buffer.
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
@@ -325,39 +259,6 @@ void CreateTriangle(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-
-	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	//Texture Attribute
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof
-	//(float)));
-	//glEnableVertexAttribArray(2);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
-}
-
-void Update() {
-	if (direction)
-	{
-		triOffset += triIncrement;
-	}
-	else {
-		triOffset -= triIncrement;
-		//std::cout << "Opposite Direction\n" << triOffset << std::endl;
-	}
-
-	if (abs(triOffset) >= triMaxOffset)
-	{
-		direction = !direction;
-	}
-	//this makes the triangle rotate.
-	//currentAngle += 0.01f;
-	if (currentAngle >= 360) {
-		currentAngle -= 360;
-	}
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -370,51 +271,51 @@ void processInput(GLFWwindow *window)
 	float camSpeed = 0.05f;
 	//Move Forward
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		CamPos += camSpeed * CamDirection * deltaTime;
+		CamPos +=camSpeed  * float(deltaTime) * CamDirection;
 	}
 	//Move Backward
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		CamPos -= camSpeed * CamDirection * deltaTime;
+		CamPos -= camSpeed * CamDirection * float(deltaTime);
 	}
 	//Move towards left
 	// to get the camera right vector use cross product btw up vector and direction vector.
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		CamPos -= camSpeed * normalize(cross(CamDirection, CamUp)) * deltaTime;
+		CamPos -= camSpeed * normalize(cross(CamDirection, CamUp)) * float(deltaTime);
 	}
 
 	//Move towards right[right hand rule , positive x axis is thumb right]
 	// to get the camera right vector use cross product btw up vector and direction vector.
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		CamPos += camSpeed * normalize(cross(CamDirection, CamUp)) * deltaTime;
+		CamPos += camSpeed * normalize(cross(CamDirection, CamUp)) * float(deltaTime);
 	}
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
-	float sensitivity = 0.05;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-	YAW += xoffset;
-	PITCH += yoffset;
-	if (PITCH > 89.0f)
-		PITCH = 89.0f;
-	if (PITCH < -89.0f)
-		PITCH = -89.0f;
-	glm::vec3 front;
-	front.x = cos(radians(YAW)) * cos(radians(PITCH));
-	front.y = sin(radians(PITCH));
-	front.z = sin(radians(YAW)) * cos(radians(PITCH));
-	CamDirection = normalize(front);
+	//if (firstMouse)
+	//{
+	//	lastX = xpos;
+	//	lastY = ypos;
+	//	firstMouse = false;
+	//}
+	//float xoffset = xpos - lastX;
+	//float yoffset = lastY - ypos;
+	//lastX = xpos;
+	//lastY = ypos;
+	//float sensitivity = 0.05;
+	//xoffset *= sensitivity;
+	//yoffset *= sensitivity;
+	//YAW += xoffset;
+	//PITCH += yoffset;
+	//if (PITCH > 89.0f)
+	//	PITCH = 89.0f;
+	//if (PITCH < -89.0f)
+	//	PITCH = -89.0f;
+	//glm::vec3 front;
+	//front.x = float(cos(radians(YAW)) * cos(radians(PITCH)));
+	//front.y = float(sin(radians(PITCH)));
+	//front.z = float(sin(radians(YAW)) * cos(radians(PITCH)));
+	//CamDirection = normalize(front);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

@@ -29,10 +29,15 @@
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="VertexCode.vs" />
     <None Include="FragCode.fs" />
+    <None Include="FragLightSource.fs" />
+    <None Include="VertexLightSource.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="wall.jpg">
