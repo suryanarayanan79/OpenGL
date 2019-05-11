@@ -30,9 +30,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 void processInput(GLFWwindow *window);
 void InitApp();
-void Update();
 
-void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo);
+void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo,GLuint nextIndex);
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -60,8 +59,8 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
-// Cube Vertex Data Only Position Attibute.
-GLfloat vertices1[] = {
+// Cube Vertex Data Only Position Attibute.For Lamp
+GLfloat vertices2[] = {
 	-0.5f, -0.5f, -0.5f, 
 	0.5f, -0.5f, -0.5f,  
 	0.5f,  0.5f, -0.5f,  
@@ -105,6 +104,52 @@ GLfloat vertices1[] = {
 	-0.5f,  0.5f, -0.5f
 };
 
+//For Object.
+// Cube Vertex Data Only position Attibute and normal for the cubes face. 
+//3 points for position and 3 points for the normal.
+float vertices1[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+};
 
 vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
@@ -166,9 +211,10 @@ int main()
 	}
 
 	InitApp();
-
-	SettingUpBufferData(vertices1, sizeof(vertices1), vao[0], vbo[0]);
-	SettingUpBufferData(vertices1, sizeof(vertices1), vao[1], vbo[1]);
+	//LampObject
+	SettingUpBufferData(vertices1, sizeof(vertices2), vao[0], vbo[0],3);
+	//Object.
+	SettingUpBufferData(vertices1, sizeof(vertices1), vao[1], vbo[1],6);
 
 	//Setting Up Camera 
 	CamDirection = vec3(0, 0, -1);
@@ -246,7 +292,7 @@ void InitApp()
 }
 
 
-void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo) {
+void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo,GLuint nextIndex) {
 	std::cout << "VAO" << vao << "\t";
 	std::cout << "VBO" << vbo << "\t";
 
@@ -258,7 +304,7 @@ void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, nextIndex * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 }
 
