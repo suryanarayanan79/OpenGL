@@ -60,50 +60,51 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 //IMPORTANT Learning
 //Draw Order is Always Anti-Clock Wise.
 
-// Cube Vertex Data
+// Cube Vertex Data Only Position Attibute.
 GLfloat vertices1[] = {
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f, 
+	0.5f, -0.5f, -0.5f,  
+	0.5f,  0.5f, -0.5f,  
+	0.5f,  0.5f, -0.5f,  
+	-0.5f,  0.5f, -0.5f, 
+	-0.5f, -0.5f, -0.5f, 
 
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f, 
+	0.5f, -0.5f,  0.5f,  
+	0.5f,  0.5f,  0.5f,  
+	0.5f,  0.5f,  0.5f,  
+	-0.5f,  0.5f,  0.5f, 
+	-0.5f, -0.5f,  0.5f, 
 
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f, 
+	-0.5f,  0.5f, -0.5f, 
+	-0.5f, -0.5f, -0.5f, 
+	-0.5f, -0.5f, -0.5f, 
+	-0.5f, -0.5f,  0.5f, 
+	-0.5f,  0.5f,  0.5f, 
 
-	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	0.5f,  0.5f,  0.5f,  
+	0.5f,  0.5f, -0.5f,  
+	0.5f, -0.5f, -0.5f,  
+	0.5f, -0.5f, -0.5f,  
+	0.5f, -0.5f,  0.5f,  
+	0.5f,  0.5f,  0.5f,  
 
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 
+	0.5f, -0.5f, -0.5f,  
+	0.5f, -0.5f,  0.5f,  
+	0.5f, -0.5f,  0.5f,  
+	-0.5f, -0.5f,  0.5f, 
+	-0.5f, -0.5f, -0.5f, 
 
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	-0.5f,  0.5f, -0.5f, 
+	0.5f,  0.5f, -0.5f,  
+	0.5f,  0.5f,  0.5f,  
+	0.5f,  0.5f,  0.5f,  
+	-0.5f,  0.5f,  0.5f, 
+	-0.5f,  0.5f, -0.5f
 };
+
 
 vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
@@ -213,7 +214,7 @@ int main()
 		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
 
 		ourShader.use();
-		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.0f, 0.05f));
+		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.40f, 0.0f));
 		ourShader.setVec3("lightColor", glm::vec3(1.0f, 0.0f, 0.0f));
 		ourShader.setMatrix4fv("model", objectModelMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
@@ -257,7 +258,7 @@ void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount, vertices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 }
 
