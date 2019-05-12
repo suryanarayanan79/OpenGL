@@ -259,12 +259,16 @@ int main()
 		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
 
 		ourShader.use();
+
 		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.40f, 0.0f));
 		ourShader.setVec3("lightColor", glm::vec3(1.0f, 0.0f, 0.0f));
+
 		ourShader.setMatrix4fv("model", objectModelMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
+
 		ourShader.setMatrix4fv("view", viewMatrix);
 		ourShader.setVec3("lightPosition", lightSourcePostion);
+		ourShader.setVec3("viewPosition", camera.Position);
 
 		//To render a single cube we need a total of 36 vertices
 		//6 faces * 2 triangles * 3 vertices each
