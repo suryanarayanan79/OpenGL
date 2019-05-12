@@ -255,7 +255,6 @@ int main()
 		lampShader.setMatrix4fv("projection", projectMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-
 		objectModelMatrix = mat4(1.0f);
 		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
 
@@ -265,6 +264,8 @@ int main()
 		ourShader.setMatrix4fv("model", objectModelMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
 		ourShader.setMatrix4fv("view", viewMatrix);
+		ourShader.setVec3("lightPosition", lightSourcePostion);
+
 		//To render a single cube we need a total of 36 vertices
 		//6 faces * 2 triangles * 3 vertices each
 		glDrawArrays(GL_TRIANGLES, 0, 36);
