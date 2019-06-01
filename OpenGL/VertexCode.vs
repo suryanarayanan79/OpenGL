@@ -20,6 +20,6 @@ void main()
 	// this also does that but using matrix rotation
 	Normal = aNormal;
 	fragPosition = vec3(model * vec4(aPos, 1.0f));
-	gl_Position = projection * view * model * vec4(fragPosition, 1.0f);
+	gl_Position = projection * view *  vec4(fragPosition, 1.0f);
 
 }

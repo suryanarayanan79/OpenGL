@@ -151,9 +151,10 @@ float vertices1[] = {
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
+vec3 lightSourcePostion = vec3(-1.0f, 0.0f, -1.0f);
+//vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
-	vec3(2.0f,  5.0f, -15.0f),
+	vec3(0.0f,  0.0f, -1.0f),
 	vec3(0.0f,0.0f,0.0f),
 	vec3(-1.5f, -2.2f, -2.5f),
 	vec3(-3.8f, -2.0f, -12.3f),
@@ -247,17 +248,20 @@ int main()
 
 		lightObjectMM = mat4(1.0f);
 		lightObjectMM = translate(lightObjectMM, lightSourcePostion);
-		lightObjectMM = scale(lightObjectMM,vec3(0.3f));
+		//lightObjectMM = rotate(lightObjectMM, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
+
+		lightObjectMM = scale(lightObjectMM,vec3(0.4f));
 		lampShader.use();
 
 		lampShader.setMatrix4fv("model",lightObjectMM);
 		lampShader.setMatrix4fv("view", viewMatrix);
 		lampShader.setMatrix4fv("projection", projectMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//////////
 
 		objectModelMatrix = mat4(1.0f);
 		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
-
+		objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
 		ourShader.use();
 
 		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.40f, 0.0f));
