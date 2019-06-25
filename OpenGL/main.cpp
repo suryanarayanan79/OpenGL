@@ -31,7 +31,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow *window);
 void InitApp();
 
-void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo,GLuint nextIndex);
+void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo,GLuint nextIndex,GLuint typeIndex);
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -154,7 +154,7 @@ float vertices1[] = {
 vec3 lightSourcePostion = vec3(-1.0f, 0.0f, -1.0f);
 //vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
-	vec3(0.0f,  0.0f, -1.0f),
+	vec3(0.0f,  0.0f, -7.0f),
 	vec3(0.0f,0.0f,0.0f),
 	vec3(-1.5f, -2.2f, -2.5f),
 	vec3(-3.8f, -2.0f, -12.3f),
@@ -213,9 +213,9 @@ int main()
 
 	InitApp();
 	//LampObject
-	SettingUpBufferData(vertices1, sizeof(vertices2), vao[0], vbo[0],3);
+	SettingUpBufferData(vertices2, sizeof(vertices2), vao[0], vbo[0],3,0);
 	//Object.
-	SettingUpBufferData(vertices1, sizeof(vertices1), vao[1], vbo[1],6);
+	SettingUpBufferData(vertices1, sizeof(vertices1), vao[1], vbo[1],6,1);
 
 	//Setting Up Camera 
 	CamDirection = vec3(0, 0, -1);
@@ -225,15 +225,15 @@ int main()
 	Shader	ourShader("VertexCode.vs", "FragCode.fs");
 
 	Shader	lampShader("VertexLightSource.vs", "FragLightSource.fs");
-
+	float accumulatedTime = 0,angle = 0, CircleRadius = 0,x= 0,z=0;
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		currentFrameTime = glfwGetTime();
 		deltaTime = currentFrameTime - lastFrameTime;
-		lastFrameTime = currentFrameTime;
-
+		lastFrameTime = float(currentFrameTime);
+		accumulatedTime += deltaTime;
 		processInput(window);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -247,7 +247,21 @@ int main()
 
 
 		lightObjectMM = mat4(1.0f);
-		lightObjectMM = translate(lightObjectMM, lightSourcePostion);
+		lightObjectMM = translate(lightObjectMM, lightSourcePostion );
+
+		//if (accumulatedTime > 1) {
+			angle++;
+			accumulatedTime = 0;
+			CircleRadius = glm::distance(lightSourcePostion, cubePosition[0]);
+			x = CircleRadius * float(cos(radians(angle)));
+			z = CircleRadius * float(sin(radians(angle)));
+			lightSourcePostion = glm::vec3(x + cubePosition[0].x, cubePosition[0].y, cubePosition[0].z + z);
+		//}
+		if (angle > 360)
+		{	
+			angle = 0;
+			std::cout << "CircularRadius"<< CircleRadius << std::endl;
+		}
 		//lightObjectMM = rotate(lightObjectMM, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
 
 		lightObjectMM = scale(lightObjectMM,vec3(0.4f));
@@ -261,11 +275,11 @@ int main()
 
 		objectModelMatrix = mat4(1.0f);
 		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
-		objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
+		//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
 		ourShader.use();
 
-		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.40f, 0.0f));
-		ourShader.setVec3("lightColor", glm::vec3(1.0f, 0.0f, 0.0f));
+		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.0f, 0.0f));
+		ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
 		ourShader.setMatrix4fv("model", objectModelMatrix);
 		ourShader.setMatrix4fv("projection", projectMatrix);
@@ -301,7 +315,7 @@ void InitApp()
 }
 
 
-void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo,GLuint nextIndex) {
+void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint vbo,GLuint nextIndex,GLuint typeIndex) {
 	std::cout << "VAO" << vao << "\t";
 	std::cout << "VBO" << vbo << "\t";
 
@@ -315,6 +329,12 @@ void SettingUpBufferData(GLfloat* vertices, int vertexCount, GLuint vao, GLuint 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, nextIndex * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	if (typeIndex == 1) {
+		//normal
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, nextIndex * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+	}
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -372,7 +392,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	//front.y = float(sin(radians(PITCH)));
 	//front.z = float(sin(radians(YAW)) * cos(radians(PITCH)));
 	//CamDirection = normalize(front);
-}
+}	
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------

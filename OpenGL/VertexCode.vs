@@ -15,11 +15,10 @@ out vec3 fragPosition;
 //uniform float offset;
 void main()
 {
-// inverse the trainagle. upside down.
-	
 	// this also does that but using matrix rotation
-	Normal = aNormal;
+	//Normal = aNormal;
 	fragPosition = vec3(model * vec4(aPos, 1.0f));
+	 Normal = mat3(transpose(inverse(model))) * aNormal; 
 	gl_Position = projection * view *  vec4(fragPosition, 1.0f);
 
 }
