@@ -249,14 +249,16 @@ int main()
 		lightObjectMM = mat4(1.0f);
 		lightObjectMM = translate(lightObjectMM, lightSourcePostion );
 
-		//if (accumulatedTime > 1) {
+		if (accumulatedTime > 0.1f) {
+		std::cout << "deltaTime" << deltaTime << std::endl;
+
 			angle++;
 			accumulatedTime = 0;
 			CircleRadius = glm::distance(lightSourcePostion, cubePosition[0]);
 			x = CircleRadius * float(cos(radians(angle)));
 			z = CircleRadius * float(sin(radians(angle)));
 			lightSourcePostion = glm::vec3(x + cubePosition[0].x, cubePosition[0].y, cubePosition[0].z + z);
-		//}
+		}
 		if (angle > 360)
 		{	
 			angle = 0;
