@@ -154,7 +154,7 @@ float vertices1[] = {
 vec3 lightSourcePostion = vec3(-1.0f, 0.0f, -1.0f);
 //vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
-	vec3(0.0f,  0.0f, -7.0f),
+	vec3(0.0f,  0.0f, -4.0f),
 	vec3(0.0f,0.0f,0.0f),
 	vec3(-1.5f, -2.2f, -2.5f),
 	vec3(-3.8f, -2.0f, -12.3f),
@@ -222,7 +222,7 @@ int main()
 	CamPos = vec3(0, 0, 12);
 	CamUp = vec3(0, 1, 0);
 	//
-	Shader	ourShader("VertexCode.vs", "FragCode.fs");
+	Shader	ObjectShader("VertexCode.vs", "FragCode.fs");
 
 	Shader	lampShader("VertexLightSource.vs", "FragLightSource.fs");
 	float accumulatedTime = 0,angle = 0, CircleRadius = 0,x= 0,z=0;
@@ -277,18 +277,19 @@ int main()
 
 		objectModelMatrix = mat4(1.0f);
 		objectModelMatrix = translate(objectModelMatrix, cubePosition[0]);
+		objectModelMatrix = rotate(objectModelMatrix, radians(-45.0f), vec3(0.0f, 1.0f, 0));
 		//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
-		ourShader.use();
+		ObjectShader.use();
 
-		ourShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.0f, 0.0f));
-		ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		ObjectShader.setVec3("ObjectColor", glm::vec3(0.0f, 1.0f, 0.40f));
+		ObjectShader.setVec3("lightColor", glm::vec3(0.30f, 0.50f, 1.0f));
 
-		ourShader.setMatrix4fv("model", objectModelMatrix);
-		ourShader.setMatrix4fv("projection", projectMatrix);
+		ObjectShader.setMatrix4fv("model", objectModelMatrix);
+		ObjectShader.setMatrix4fv("projection", projectMatrix);
 
-		ourShader.setMatrix4fv("view", viewMatrix);
-		ourShader.setVec3("lightPosition", lightSourcePostion);
-		ourShader.setVec3("viewPosition", camera.Position);
+		ObjectShader.setMatrix4fv("view", viewMatrix);
+		ObjectShader.setVec3("lightPosition", lightSourcePostion);
+		ObjectShader.setVec3("viewPosition", camera.Position);
 
 		//To render a single cube we need a total of 36 vertices
 		//6 faces * 2 triangles * 3 vertices each
