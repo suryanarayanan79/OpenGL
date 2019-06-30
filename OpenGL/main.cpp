@@ -154,7 +154,7 @@ float vertices1[] = {
 vec3 lightSourcePostion = vec3(-1.0f, 0.0f, -1.0f);
 //vec3 lightSourcePostion = vec3(-1.5f, 1.0f, -1.0f);
 vec3 cubePosition[] = {
-	vec3(0.0f,  0.0f, -4.0f),
+	vec3(0.0f,  0.0f, -2.0f),
 	vec3(0.0f,0.0f,0.0f),
 	vec3(-1.5f, -2.2f, -2.5f),
 	vec3(-3.8f, -2.0f, -12.3f),
@@ -236,7 +236,7 @@ int main()
 		accumulatedTime += deltaTime;
 		processInput(window);
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		viewMatrix = mat4(1.0f);
@@ -250,7 +250,7 @@ int main()
 		lightObjectMM = translate(lightObjectMM, lightSourcePostion );
 
 		if (accumulatedTime > 0.1f) {
-		std::cout << "deltaTime" << deltaTime << std::endl;
+		//std::cout << "deltaTime" << deltaTime << std::endl;
 
 			angle++;
 			accumulatedTime = 0;
@@ -262,7 +262,7 @@ int main()
 		if (angle > 360)
 		{	
 			angle = 0;
-			std::cout << "CircularRadius"<< CircleRadius << std::endl;
+			//std::cout << "CircularRadius"<< CircleRadius << std::endl;
 		}
 		//lightObjectMM = rotate(lightObjectMM, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
 
@@ -281,9 +281,24 @@ int main()
 		//objectModelMatrix = rotate(objectModelMatrix, (float)glfwGetTime() * radians(-45.0f), vec3(0.0f, 1.0f, 0));
 		ObjectShader.use();
 
-		ObjectShader.setVec3("ObjectColor", glm::vec3(0.0f, 1.0f, 0.40f));
-		ObjectShader.setVec3("lightColor", glm::vec3(0.30f, 0.50f, 1.0f));
+		glm::vec3 lightColor;
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
+		glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+		ObjectShader.setVec3("lightmaterial.ambient", vec3(1.0f));
+		ObjectShader.setVec3("lightmaterial.diffuse", vec3(1.0f));
+		ObjectShader.setVec3("lightmaterial.specular", vec3(1.0f));
 
+		//ObjectShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		//ObjectShader.setVec3("ObjectColor", glm::vec3(1.0f, 0.1f, 0.5f));
+		ObjectShader.setVec3("material.ambient", glm::vec3(0.24725f, 0.1995f, 0.0745f));
+		ObjectShader.setVec3("material.diffuse", glm::vec3(0.75164f, 0.60648f, 0.22648f));
+		ObjectShader.setVec3("material.specular",glm::vec3(0.62828f,0.55802f,0.36606f));
+		ObjectShader.setFloat("material.shininess", 64.0);
+
+			
 		ObjectShader.setMatrix4fv("model", objectModelMatrix);
 		ObjectShader.setMatrix4fv("projection", projectMatrix);
 
